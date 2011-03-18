@@ -1,0 +1,3 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler">
+  <st:header name="X-Instance-Identity" value="${it.encodedPublicKey}" />
+</j:jelly>
