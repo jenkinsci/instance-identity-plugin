@@ -1,5 +1,6 @@
 package org.jenkinsci.main.modules.instance_identity;
 
+import hudson.FilePath;
 import hudson.model.Hudson;
 import hudson.model.PageDecorator;
 import org.bouncycastle.openssl.PEMReader;
@@ -15,6 +16,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Captures the RSA key pair that identifies/authenticates this instance.
@@ -56,9 +59,21 @@ public class InstanceIdentity {
                 } finally {
                     w.close();
                 }
+                makeReadOnly(keyFile);
             }
         } catch (NoSuchAlgorithmException e) {
             throw new AssertionError(e); // RSA algorithm should be always there
+        }
+    }
+
+    /**
+     * Try to make the key read-only.
+     */
+    private void makeReadOnly(File keyFile) {
+        try {
+            new FilePath(keyFile).chmod(0600);
+        } catch (Throwable e) {
+            LOGGER.log(Level.WARNING, "Failed to make read only: "+keyFile,e);
         }
     }
 
@@ -73,4 +88,6 @@ public class InstanceIdentity {
     public static InstanceIdentity get() {
         return Hudson.getInstance().getExtensionList(PageDecorator.class).get(PageDecoratorImpl.class).identity;
     }
+
+    private static final Logger LOGGER = Logger.getLogger(InstanceIdentity.class.getName());
 }
