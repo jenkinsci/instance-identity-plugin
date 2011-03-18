@@ -14,6 +14,12 @@
   <version>1.0-SNAPSHOT</version>
   <packaging>hpi</packaging>
   <name>Instance Identity</name>
+  <description>Maintains an RSA key pair that can serve as a foundation of authentication when communicating with Jenkins</description>
+
+  <scm>
+    <connection>scm:git:git://github.com/jenkinsci/instance-identity-module.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/jenkinsci/instance-identity-module.git</developerConnection>
+  </scm>
 
   <dependencies>
     <dependency>
