@@ -8,7 +8,7 @@
 
   <groupId>org.jenkins-ci.modules</groupId>
   <artifactId>instance-identity</artifactId>
-  <version>1.2</version>
+  <version>1.3-SNAPSHOT</version>
   <packaging>jenkins-module</packaging>
   <name>Instance Identity</name>
   <description>Maintains an RSA key pair that can serve as a foundation of authentication when communicating with Jenkins</description>
