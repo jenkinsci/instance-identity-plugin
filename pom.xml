@@ -18,6 +18,13 @@
     <developerConnection>scm:git:ssh://git@github.com/jenkinsci/instance-identity-module.git</developerConnection>
   </scm>
 
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>http://jenkins-ci.org/mit-license</url>
+    </license>
+  </licenses>
+
   <build>
     <plugins>
       <plugin>
