@@ -30,7 +30,7 @@
       <plugin>
         <groupId>org.jenkins-ci.tools</groupId>
         <artifactId>maven-hpi-plugin</artifactId>
-        <version>1.67</version>
+        <version>1.85</version>
         <extensions>true</extensions>
       </plugin>
     </plugins>
