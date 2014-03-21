@@ -4,9 +4,14 @@ import hudson.FilePath;
 import hudson.Util;
 import hudson.model.PageDecorator;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.SecureRandom;
@@ -14,12 +19,11 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.crypto.Cipher;
 import jenkins.model.Jenkins;
-import jenkins.security.HexStringConfidentialKey;
+import jenkins.security.CryptoConfidentialKey;
+import org.apache.commons.io.FileUtils;
 import org.bouncycastle.openssl.PEMReader;
 import org.bouncycastle.openssl.PEMWriter;
-import org.bouncycastle.openssl.PasswordFinder;
 
 /**
  * Captures the RSA key pair that identifies/authenticates this instance.
@@ -31,7 +35,7 @@ public class InstanceIdentity {
     private final KeyPair keys;
 
     public InstanceIdentity() throws IOException {
-        this(new File(Jenkins.getInstance().getRootDir(), "identity.pem"), new File(Jenkins.getInstance().getRootDir(), "identity.key"));
+        this(new File(Jenkins.getInstance().getRootDir(), "identity.key.enc"), new File(Jenkins.getInstance().getRootDir(), "identity.key"));
     }
 
     public InstanceIdentity(File keyFile) throws IOException {
@@ -40,35 +44,24 @@ public class InstanceIdentity {
 
     InstanceIdentity(File keyFile, File oldKeyFile) throws IOException {
         KeyPairGenerator gen;
-        Cipher cipher;
         try {
             gen = KeyPairGenerator.getInstance("RSA");
-            cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         } catch (Exception e) {
             throw new AssertionError(e); // RSA algorithm should be always there
         }
-
         if (oldKeyFile.exists()) {
-            FileReader in = new FileReader(oldKeyFile);
-            try {
-                // a hack to work around a problem in PEMReader (or JCE, depending on how you look at it.)
-                // I can't just pass in null as a provider --- JCE doesn't default to the default provider,
-                // but it chokes that I passed in null. Urgh.
-                String provider = gen.getProvider().getName();
-                keys = (KeyPair)new PEMReader(in,null,provider).readObject();
-            } finally {
-                in.close();
-            }
+            keys = read(new FileReader(oldKeyFile), gen);
             write(keys, keyFile);
             Util.deleteFile(oldKeyFile);
         } else if (keyFile.exists()) {
-            FileReader in = new FileReader(keyFile);
+            byte[] enc = FileUtils.readFileToByteArray(keyFile);
+            Reader in;
             try {
-                String provider = cipher.getProvider().getName();
-                keys = (KeyPair) new PEMReader(in, new PasswordFinderImpl(), provider, gen.getProvider().getName()).readObject();
-            } finally {
-                in.close();
+                in = new StringReader(new String(KEY.decrypt().doFinal(enc), "UTF-8"));
+            } catch (GeneralSecurityException x) {
+                throw new IOException(x);
             }
+            keys = read(in, gen);
         } else {
             gen.initialize(2048,new SecureRandom()); // going beyond 2048 requires crypto extension
             keys = gen.generateKeyPair();
@@ -76,23 +69,39 @@ public class InstanceIdentity {
         }
     }
 
-    private static void write(KeyPair keys, File keyFile) throws IOException {
-        PEMWriter w = new PEMWriter(new FileWriter(keyFile), "SunJCE");
+    private static KeyPair read(Reader in, KeyPairGenerator gen) throws IOException {
+        // a hack to work around a problem in PEMReader (or JCE, depending on how you look at it.)
+        // I can't just pass in null as a provider --- JCE doesn't default to the default provider,
+        // but it chokes that I passed in null. Urgh.
+        String provider = gen.getProvider().getName();
         try {
-            w.writeObject(keys, "AES-128-CBC", new PasswordFinderImpl().getPassword(), new SecureRandom());
+            return (KeyPair) new PEMReader(in, null, provider).readObject();
+        } finally {
+            in.close();
+        }
+    }
+
+    private static void write(KeyPair keys, File keyFile) throws IOException {
+        StringWriter sw = new StringWriter();
+        PEMWriter w = new PEMWriter(sw, "SunJCE");
+        try {
+            w.writeObject(keys);
         } finally {
             w.close();
+        }
+        OutputStream os = new FileOutputStream(keyFile);
+        try {
+            os.write(KEY.encrypt().doFinal(sw.toString().getBytes("UTF-8")));
+        } catch (GeneralSecurityException x) {
+            throw new IOException(x);
+        } finally {
+            os.close();
         }
         makeReadOnly(keyFile);
     }
 
-    private static final class PasswordFinderImpl implements PasswordFinder {
-        public char[] getPassword() {
-            return KEY.get().toCharArray();
-        }
-    }
-
-    private static final HexStringConfidentialKey KEY = new HexStringConfidentialKey(InstanceIdentity.class, "KEY", 64);
+    // Would be neater to actually write an encrypted RSA key in PEM format, but could not wrangle BouncyCastle into reading the result, so just doing generic encryption instead:
+    private static final CryptoConfidentialKey KEY = new CryptoConfidentialKey(InstanceIdentity.class, "KEY");
 
     /**
      * Try to make the key read-only.

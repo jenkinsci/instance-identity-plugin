@@ -51,7 +51,7 @@ public class InstanceIdentityTest {
     private void assertIdentity() throws Exception {
         assertEquals(TEST_IDENTITY, r.jenkins.getExtensionList(PageDecorator.class).get(PageDecoratorImpl.class).getEncodedPublicKey());
         File d = r.jenkins.getRootDir();
-        assertTrue(new File(d, "identity.pem").isFile());
+        assertTrue(new File(d, "identity.key.enc").isFile());
         assertFalse(new File(d, "identity.key").isFile());
     }
 
