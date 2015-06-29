@@ -59,6 +59,12 @@ public class InstanceIdentity {
             try {
                 in = new StringReader(new String(KEY.decrypt().doFinal(enc), "UTF-8"));
             } catch (GeneralSecurityException x) {
+                LOGGER.log(Level.SEVERE, "identity.key.enc is corrupted. Deleting identity.key.enc and generating a new one");
+                Util.deleteFile(keyFile);
+                gen.initialize(2048, new SecureRandom()); // going beyond 2048 requires crypto extension
+                keys = gen.generateKeyPair();
+                write(keys, keyFile);
+                LOGGER.log(Level.SEVERE, "New identity.key.enc was successfully created");
                 throw new IOException(x);
             }
             keys = read(in, gen);
