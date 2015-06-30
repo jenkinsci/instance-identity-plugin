@@ -49,7 +49,6 @@ public class InstanceIdentity {
         } catch (Exception e) {
             throw new AssertionError(e); // RSA algorithm should be always there
         }
-
         if (oldKeyFile.exists()) {
             keys = read(new FileReader(oldKeyFile), gen);
             write(keys, keyFile);
