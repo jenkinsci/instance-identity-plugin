@@ -49,29 +49,30 @@ public class InstanceIdentity {
         } catch (Exception e) {
             throw new AssertionError(e); // RSA algorithm should be always there
         }
+
         if (oldKeyFile.exists()) {
             keys = read(new FileReader(oldKeyFile), gen);
             write(keys, keyFile);
             Util.deleteFile(oldKeyFile);
-        } else if (keyFile.exists()) {
+        } else {
             byte[] enc = FileUtils.readFileToByteArray(keyFile);
             Reader in;
             try {
                 in = new StringReader(new String(KEY.decrypt().doFinal(enc), "UTF-8"));
             } catch (GeneralSecurityException x) {
-                LOGGER.log(Level.SEVERE, "identity.key.enc is corrupted. Deleting identity.key.enc and generating a new one");
-                Util.deleteFile(keyFile);
+                LOGGER.log(Level.SEVERE, String.format("identity.key.enc is corrupted. Identity.key.enc will be deleted and a new one will be generated"), x);
+                in = null;
+            }
+            if (keyFile.exists() && in!=null) {
+                keys = read(in, gen);
+            } else {
+                if (in == null) {
+                    Util.deleteFile(keyFile);
+                }
                 gen.initialize(2048, new SecureRandom()); // going beyond 2048 requires crypto extension
                 keys = gen.generateKeyPair();
                 write(keys, keyFile);
-                LOGGER.log(Level.SEVERE, "New identity.key.enc was successfully created");
-                throw new IOException(x);
             }
-            keys = read(in, gen);
-        } else {
-            gen.initialize(2048,new SecureRandom()); // going beyond 2048 requires crypto extension
-            keys = gen.generateKeyPair();
-            write(keys, keyFile);
         }
     }
 
