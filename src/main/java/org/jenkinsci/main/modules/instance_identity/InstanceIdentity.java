@@ -65,7 +65,7 @@ public class InstanceIdentity {
             if (keyFile.exists() && in!=null) {
                 keys = read(in, gen);
             } else {
-                if (in == null) {
+                if (keyFile.exists() && in == null) {
                     Util.deleteFile(keyFile);
                 }
                 gen.initialize(2048, new SecureRandom()); // going beyond 2048 requires crypto extension
