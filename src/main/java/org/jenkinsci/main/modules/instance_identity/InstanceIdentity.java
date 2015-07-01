@@ -54,24 +54,31 @@ public class InstanceIdentity {
             write(keys, keyFile);
             Util.deleteFile(oldKeyFile);
         } else {
-            byte[] enc = FileUtils.readFileToByteArray(keyFile);
-            Reader in;
-            try {
-                in = new StringReader(new String(KEY.decrypt().doFinal(enc), "UTF-8"));
-            } catch (GeneralSecurityException x) {
-                LOGGER.log(Level.SEVERE, String.format("identity.key.enc is corrupted. Identity.key.enc will be deleted and a new one will be generated"), x);
-                in = null;
-            }
-            if (keyFile.exists() && in!=null) {
-                keys = read(in, gen);
+            Reader reader = getFileReader(keyFile);
+            if (reader!=null && keyFile.exists()) {
+                keys = read(reader, gen);
             } else {
-                if (keyFile.exists() && in == null) {
-                    Util.deleteFile(keyFile);
-                }
                 gen.initialize(2048, new SecureRandom()); // going beyond 2048 requires crypto extension
                 keys = gen.generateKeyPair();
                 write(keys, keyFile);
             }
+        }
+    }
+
+    public Reader getFileReader(File file){
+        try {
+            byte[] enc = FileUtils.readFileToByteArray(file);
+            Reader in;
+            try {
+                in = new StringReader(new String(KEY.decrypt().doFinal(enc), "UTF-8"));
+                return in;
+            } catch (GeneralSecurityException x) {;
+                LOGGER.log(Level.SEVERE, String.format("identity.key.enc is corrupted. Identity.key.enc will be deleted and a new one will be generated"), x);
+                return null;
+            }
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, String.format("identity.key.enc doesn't exist. New Identity.key.enc will be generated"), e);
+            return null;
         }
     }
 
