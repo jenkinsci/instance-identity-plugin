@@ -31,7 +31,6 @@ import java.io.File;
 import java.io.FileInputStream;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertTrue;
 
 import org.junit.Rule;
 import org.junit.Test;
