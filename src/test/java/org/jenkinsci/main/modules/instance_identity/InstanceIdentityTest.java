@@ -32,6 +32,7 @@ import java.io.FileInputStream;
 
 import static org.junit.Assert.*;
 
+import jenkins.model.Jenkins;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -63,6 +64,10 @@ public class InstanceIdentityTest {
         String md5NewIdentityKeyFile = org.apache.commons.codec.digest.DigestUtils.md5Hex(fis);
         fis.close();
         assertFalse(md5NewIdentityKeyFile.equals(md5CurruptedIdentityKeyFile));
+
+        File oldKeyFile = new File(Jenkins.getInstance().getRootDir(), "identity.key");
+        InstanceIdentity instanceIdentity = new InstanceIdentity(identityKeyFile, oldKeyFile);
+        assertNotNull(instanceIdentity.getFileReader(identityKeyFile));
     }
 
     @LocalData

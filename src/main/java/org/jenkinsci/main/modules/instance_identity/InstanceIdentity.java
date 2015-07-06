@@ -2,6 +2,7 @@ package org.jenkinsci.main.modules.instance_identity;
 
 import hudson.FilePath;
 import hudson.Util;
+import hudson.model.Item;
 import hudson.model.PageDecorator;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -55,7 +56,7 @@ public class InstanceIdentity {
             Util.deleteFile(oldKeyFile);
         } else {
             Reader reader = getFileReader(keyFile);
-            if (reader!=null && keyFile.exists()) {
+            if (reader!=null) {
                 keys = read(reader, gen);
             } else {
                 gen.initialize(2048, new SecureRandom()); // going beyond 2048 requires crypto extension
