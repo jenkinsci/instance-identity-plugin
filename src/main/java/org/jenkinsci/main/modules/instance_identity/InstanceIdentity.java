@@ -93,7 +93,6 @@ public class InstanceIdentity {
         return keyPair;
     }
 
-
     private static void write(KeyPair keys, File keyFile) throws IOException {
         StringWriter sw = new StringWriter();
         PEMWriter w = new PEMWriter(sw, "SunJCE");
