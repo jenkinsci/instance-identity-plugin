@@ -2,7 +2,6 @@ package org.jenkinsci.main.modules.instance_identity;
 
 import hudson.FilePath;
 import hudson.Util;
-import hudson.model.Item;
 import hudson.model.PageDecorator;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -50,15 +49,15 @@ public class InstanceIdentity {
         } catch (Exception e) {
             throw new AssertionError(e); // RSA algorithm should be always there
         }
-        if (oldKeyFile.exists()) {
-            keys = read(new FileReader(oldKeyFile), gen);
+        if (oldKeyFile!= null && oldKeyFile.exists()) { //Process old KeyFile
+            keys = read(null, oldKeyFile, gen);
             write(keys, keyFile);
             Util.deleteFile(oldKeyFile);
-        } else {
-            Reader reader = getFileReader(keyFile);
-            if (reader!=null) {
-                keys = read(reader, gen);
-            } else {
+        } else { //Process KeyFile
+            KeyPair tempKeys = read(keyFile, null, gen);
+            if(tempKeys!=null) { //Assign the KeyPair in case the read is successful
+                keys = tempKeys;
+            } else { //Generate a new KeyFile in case it doesn't exist or it is corrupted
                 gen.initialize(2048, new SecureRandom()); // going beyond 2048 requires crypto extension
                 keys = gen.generateKeyPair();
                 write(keys, keyFile);
@@ -66,34 +65,34 @@ public class InstanceIdentity {
         }
     }
 
-    public Reader getFileReader(File file){
-        try {
-            byte[] enc = FileUtils.readFileToByteArray(file);
-            Reader in;
-            try {
-                in = new StringReader(new String(KEY.decrypt().doFinal(enc), "UTF-8"));
-                return in;
-            } catch (GeneralSecurityException x) {;
-                LOGGER.log(Level.SEVERE, String.format("identity.key.enc is corrupted. Identity.key.enc will be deleted and a new one will be generated"), x);
-                return null;
-            }
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, String.format("identity.key.enc doesn't exist. New Identity.key.enc will be generated"), e);
-            return null;
-        }
-    }
-
-    private static KeyPair read(Reader in, KeyPairGenerator gen) throws IOException {
+    private static KeyPair read(File keyFile, File oldKeyFile, KeyPairGenerator gen) throws IOException {
         // a hack to work around a problem in PEMReader (or JCE, depending on how you look at it.)
         // I can't just pass in null as a provider --- JCE doesn't default to the default provider,
         // but it chokes that I passed in null. Urgh.
+        byte[] enc;
+        KeyPair keyPair = null;
+        Reader in;
+
         String provider = gen.getProvider().getName();
-        try {
-            return (KeyPair) new PEMReader(in, null, provider).readObject();
-        } finally {
-            in.close();
+        if (keyFile != null) { //Get the Reader for keyFile and handle if corrupted
+            try {
+                enc = FileUtils.readFileToByteArray(keyFile);
+                in = new StringReader(new String(KEY.decrypt().doFinal(enc), "UTF-8"));
+                keyPair = (KeyPair) new PEMReader(in, null, provider).readObject();
+            } catch (GeneralSecurityException x) {
+                LOGGER.log(Level.SEVERE, String.format("identity.key.enc is corrupted. Identity.key.enc will be deleted and a new one will be generated"), x);
+                return null;
+            } catch (IOException e) {
+                    LOGGER.log(Level.SEVERE, String.format("identity.key.enc doesn't exist. New Identity.key.enc will be generated"), e);
+                    return null;
+            }
+        } else if (oldKeyFile != null) { //Get the Reader for oldKeyFile
+            in = new FileReader(oldKeyFile);
+            keyPair = (KeyPair) new PEMReader(in, null, provider).readObject();
         }
+        return keyPair;
     }
+
 
     private static void write(KeyPair keys, File keyFile) throws IOException {
         StringWriter sw = new StringWriter();
