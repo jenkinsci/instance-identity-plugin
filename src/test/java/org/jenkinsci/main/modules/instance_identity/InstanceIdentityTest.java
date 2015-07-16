@@ -24,9 +24,14 @@
 
 package org.jenkinsci.main.modules.instance_identity;
 
+import hudson.Util;
 import hudson.model.PageDecorator;
+
 import java.io.File;
+import java.io.FileInputStream;
+
 import static org.junit.Assert.*;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -48,11 +53,33 @@ public class InstanceIdentityTest {
         assertIdentity();
     }
 
+    @LocalData
+    @Test public void identityKeyCorrupted() throws Exception {
+        String md5CurruptedIdentityKeyFile = "527cb65e89275095a238256b3d31b07a";
+        File d = r.jenkins.getRootDir();
+        File identityKeyFile = new File(d, "identity.key.enc");
+
+        FileInputStream fis = new FileInputStream(identityKeyFile);
+        String md5NewIdentityKeyFile = org.apache.commons.codec.digest.DigestUtils.md5Hex(fis);
+        fis.close();
+        assertFalse(md5NewIdentityKeyFile.equals(md5CurruptedIdentityKeyFile));
+
+        InstanceIdentity instanceIdentity = new InstanceIdentity(identityKeyFile, null);
+        assertNotNull(instanceIdentity);
+    }
+
+    @LocalData
+    @Test
+    public void identityKeyNotExist() throws Exception {
+        File d = r.jenkins.getRootDir();
+        assertTrue(new File(d, "identity.key.enc").isFile());
+        assertFalse(new File(d, "identity.key").isFile());
+    }
+
     private void assertIdentity() throws Exception {
         assertEquals(TEST_IDENTITY, r.jenkins.getExtensionList(PageDecorator.class).get(PageDecoratorImpl.class).getEncodedPublicKey());
         File d = r.jenkins.getRootDir();
         assertTrue(new File(d, "identity.key.enc").isFile());
         assertFalse(new File(d, "identity.key").isFile());
     }
-
 }
