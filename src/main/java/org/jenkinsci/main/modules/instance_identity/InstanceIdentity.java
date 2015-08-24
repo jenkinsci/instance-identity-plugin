@@ -22,7 +22,10 @@ import java.util.logging.Logger;
 import jenkins.model.Jenkins;
 import jenkins.security.CryptoConfidentialKey;
 import org.apache.commons.io.FileUtils;
-import org.bouncycastle.openssl.PEMReader;
+import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.PEMWriter;
 
 /**
@@ -66,7 +69,7 @@ public class InstanceIdentity {
     }
 
     private static KeyPair read(File keyFile, File oldKeyFile, KeyPairGenerator gen) throws IOException {
-        // a hack to work around a problem in PEMReader (or JCE, depending on how you look at it.)
+        // a hack to work around a problem in PEMParser (or JCE, depending on how you look at it.)
         // I can't just pass in null as a provider --- JCE doesn't default to the default provider,
         // but it chokes that I passed in null. Urgh.
         byte[] enc;
@@ -78,7 +81,10 @@ public class InstanceIdentity {
             try {
                 enc = FileUtils.readFileToByteArray(keyFile);
                 in = new StringReader(new String(KEY.decrypt().doFinal(enc), "UTF-8"));
-                keyPair = (KeyPair) new PEMReader(in, null, provider).readObject();
+                PEMParser r = new PEMParser(in);
+                Object o = r.readObject();
+                JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider(provider);
+                keyPair = converter.getKeyPair((PEMKeyPair) o);
             } catch (GeneralSecurityException x) {
                 LOGGER.log(Level.SEVERE, String.format("identity.key.enc is corrupted. Identity.key.enc will be deleted and a new one will be generated"), x);
                 return null;
@@ -88,14 +94,17 @@ public class InstanceIdentity {
             }
         } else if (oldKeyFile != null) { //Get the Reader for oldKeyFile
             in = new FileReader(oldKeyFile);
-            keyPair = (KeyPair) new PEMReader(in, null, provider).readObject();
+            PEMParser r = new PEMParser(in);
+            Object o = r.readObject();
+            JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider(provider);
+            keyPair = converter.getKeyPair((PEMKeyPair) o);
         }
         return keyPair;
     }
 
     private static void write(KeyPair keys, File keyFile) throws IOException {
         StringWriter sw = new StringWriter();
-        PEMWriter w = new PEMWriter(sw, "SunJCE");
+        PEMWriter w = new PEMWriter(sw);
         try {
             w.writeObject(keys);
         } finally {
