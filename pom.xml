@@ -8,7 +8,7 @@
 
   <groupId>org.jenkins-ci.modules</groupId>
   <artifactId>instance-identity</artifactId>
-  <version>1.5-SNAPSHOT</version>
+  <version>1.5</version>
   <packaging>jenkins-module</packaging>
   <name>Instance Identity</name>
   <description>Maintains an RSA key pair that can serve as a foundation of authentication when communicating with Jenkins</description>
@@ -16,6 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-module.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-module.git</developerConnection>
+    <tag>instance-identity-1.5</tag>
   </scm>
 
   <licenses>
