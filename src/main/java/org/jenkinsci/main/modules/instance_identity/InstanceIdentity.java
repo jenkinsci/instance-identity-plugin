@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 import jenkins.model.Jenkins;
 import jenkins.security.CryptoConfidentialKey;
 import org.apache.commons.io.FileUtils;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.openssl.PEMKeyPair;
@@ -108,7 +109,7 @@ public class InstanceIdentity {
 
     private static void write(KeyPair keys, File keyFile) throws IOException {
         StringWriter sw = new StringWriter();
-        PEMWriter w = new PEMWriter(sw);
+        JcaPEMWriter w = new JcaPEMWriter(sw);
         try {
             w.writeObject(keys);
         } finally {
