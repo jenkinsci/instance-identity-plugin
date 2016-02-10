@@ -4,6 +4,7 @@ import hudson.FilePath;
 import hudson.Util;
 import hudson.model.PageDecorator;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -22,6 +23,7 @@ import java.util.logging.Logger;
 import jenkins.model.Jenkins;
 import jenkins.security.CryptoConfidentialKey;
 import org.apache.commons.io.FileUtils;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.openssl.PEMKeyPair;
@@ -85,12 +87,15 @@ public class InstanceIdentity {
                 Object o = r.readObject();
                 JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider(provider);
                 keyPair = converter.getKeyPair((PEMKeyPair) o);
+            } catch (FileNotFoundException e) {
+                LOGGER.fine("identity.key.enc doesn't exist. New Identity.key.enc will be generated");
+                return null;
             } catch (GeneralSecurityException x) {
-                LOGGER.log(Level.SEVERE, String.format("identity.key.enc is corrupted. Identity.key.enc will be deleted and a new one will be generated"), x);
+                LOGGER.log(Level.SEVERE, "identity.key.enc is corrupted. Identity.key.enc will be deleted and a new one will be generated", x);
                 return null;
             } catch (IOException e) {
-                    LOGGER.log(Level.SEVERE, String.format("identity.key.enc doesn't exist. New Identity.key.enc will be generated"), e);
-                    return null;
+                LOGGER.log(Level.SEVERE, "failed to access identity.key.enc. Identity.key.enc will be deleted and a new one will be generated", e);
+                return null;
             }
         } else if (oldKeyFile != null) { //Get the Reader for oldKeyFile
             in = new FileReader(oldKeyFile);
@@ -104,7 +109,7 @@ public class InstanceIdentity {
 
     private static void write(KeyPair keys, File keyFile) throws IOException {
         StringWriter sw = new StringWriter();
-        PEMWriter w = new PEMWriter(sw);
+        JcaPEMWriter w = new JcaPEMWriter(sw);
         try {
             w.writeObject(keys);
         } finally {
