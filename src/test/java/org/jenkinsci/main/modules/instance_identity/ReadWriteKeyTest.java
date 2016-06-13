@@ -127,6 +127,7 @@ public class ReadWriteKeyTest {
         Security.addProvider(new BouncyCastleProvider());
         String encoded = PEMEncodable.create(keyPair2).encode();
         Security.removeProvider("BC");
+        
         return encoded;
     }
     
@@ -138,6 +139,7 @@ public class ReadWriteKeyTest {
         Security.addProvider(new BouncyCastleProvider());
         KeyPair kp = PEMEncodable.decode(pcksPEM).toKeyPair();
         Security.removeProvider("BC");
+        
         return kp;
     }
     
