@@ -31,118 +31,77 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.KeyPair;
-import java.security.Security;
-import java.security.UnrecoverableKeyException;
 
 import org.apache.commons.io.FileUtils;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.jenkinsci.main.modules.instance_identity.pem.PEMHelper;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import jenkins.bouncycastle.api.PEMEncodable;
-
 public class ReadWriteKeyTest {
 
     private static File PEM_PCKS1_FILE;
     private static File PEM_PCKS8_FILE;
+    private static byte[] KEY_PRIVATE_ENCODED;
+    private static byte[] KEY_PUBLIC_ENCODED;
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
     @BeforeClass
-    public static void setUpBC() throws URISyntaxException {
+    public static void setUpBC() throws URISyntaxException, IOException {
         PEM_PCKS1_FILE = new File(
                 ReadWriteKeyTest.class.getClassLoader().getResource("private-key-pcks1.pem").toURI());
         PEM_PCKS8_FILE = new File(
                 ReadWriteKeyTest.class.getClassLoader().getResource("private-key-pcks8.pem").toURI());
+        KEY_PRIVATE_ENCODED = FileUtils.readFileToByteArray(new File(
+                ReadWriteKeyTest.class.getClassLoader().getResource("private-key-private-encoded.bin").toURI()));
+        KEY_PUBLIC_ENCODED = FileUtils.readFileToByteArray(new File(
+                ReadWriteKeyTest.class.getClassLoader().getResource("private-key-public-encoded.bin").toURI()));
     }
 
     @Test
     public void testReadIdentityPKCS1vsPKCS8() throws Exception {
         String pcks1PEM = FileUtils.readFileToString(PEM_PCKS1_FILE);
         String pcks8PEM = FileUtils.readFileToString(PEM_PCKS8_FILE);
-        
+
         KeyPair keyPair1 = PEMHelper.decodePEM(pcks1PEM);
         KeyPair keyPair8 = PEMHelper.decodePEM(pcks8PEM);
 
         assertArrayEquals(keyPair1.getPrivate().getEncoded(), keyPair8.getPrivate().getEncoded());
         assertArrayEquals(keyPair1.getPublic().getEncoded(), keyPair8.getPublic().getEncoded());
     }
-    
+
     @Test
     public void testWriteIdentityPKCS1vsPKCS8() throws Exception {
         String pcksPEM = FileUtils.readFileToString(PEM_PCKS8_FILE);
 
         KeyPair keyPair = PEMHelper.decodePEM(pcksPEM);
         String encodedPEM = PEMHelper.encodePEM(keyPair);
-        
-        assertEquals(pcksPEM.replace('\n','\r'), encodedPEM.replace('\n','\r')); //to make sure
-        
-       
-    }
-    
-    @Test
-    public void testCompareReadPKCS8WithPEMEncodable() throws Exception {
-        String pcksPEM = FileUtils.readFileToString(PEM_PCKS8_FILE);
 
-        KeyPair keyPair = PEMHelper.decodePEM(pcksPEM);
-        KeyPair keyPair2 = decodePEMEncodable(pcksPEM);
-        String reEncodedPEM = PEMHelper.encodePEM(keyPair);
-        
-        assertArrayEquals(keyPair.getPrivate().getEncoded(), keyPair2.getPrivate().getEncoded());
-        assertArrayEquals(keyPair.getPublic().getEncoded(), keyPair2.getPublic().getEncoded());   
-        assertEquals(reEncodedPEM,PEMHelper.encodePEM(keyPair2));
-
-        //reread the nuewly encoded keyPair and retest
-        keyPair2 = decodePEMEncodable(reEncodedPEM);
-        assertArrayEquals(keyPair.getPrivate().getEncoded(), keyPair2.getPrivate().getEncoded());
-        assertArrayEquals(keyPair.getPublic().getEncoded(), keyPair2.getPublic().getEncoded());
+        assertEquals(unifyEOL(pcksPEM), unifyEOL(encodedPEM));
     }
 
     @Test
-    public void testCompareReadPKCS1WithPEMEncodable() throws Exception {
+    public void testCompareReadPKCS1AndPCKS8() throws Exception {
         String pcksPEM = FileUtils.readFileToString(PEM_PCKS1_FILE);
 
         KeyPair keyPair = PEMHelper.decodePEM(pcksPEM);
-        KeyPair keyPair2 = decodePEMEncodable(pcksPEM);
         String reEncodedPEM = PEMHelper.encodePEM(keyPair);
-        
-        assertArrayEquals(keyPair.getPrivate().getEncoded(), keyPair2.getPrivate().getEncoded());
-        assertArrayEquals(keyPair.getPublic().getEncoded(), keyPair2.getPublic().getEncoded());   
-        assertEquals(reEncodedPEM,PEMHelper.encodePEM(keyPair2));
 
-        //reread the nuewly encoded keyPair and retest
-        keyPair2 = decodePEMEncodable(reEncodedPEM);
-        assertArrayEquals(keyPair.getPrivate().getEncoded(), keyPair2.getPrivate().getEncoded());
-        assertArrayEquals(keyPair.getPublic().getEncoded(), keyPair2.getPublic().getEncoded());
+        assertArrayEquals(keyPair.getPrivate().getEncoded(), KEY_PRIVATE_ENCODED);
+        assertArrayEquals(keyPair.getPublic().getEncoded(), KEY_PUBLIC_ENCODED);
+        assertEquals(unifyEOL(reEncodedPEM), unifyEOL(FileUtils.readFileToString(PEM_PCKS8_FILE)));
+
+        // reread the newly encoded keyPair and retest
+        KeyPair keyPair2 = PEMHelper.decodePEM(reEncodedPEM);
+        assertArrayEquals(keyPair2.getPrivate().getEncoded(), KEY_PRIVATE_ENCODED);
+        assertArrayEquals(keyPair2.getPublic().getEncoded(), KEY_PUBLIC_ENCODED);
     }
 
-    /**
-     * Helper method to execute encode en PEM encodable esuring that BouncyCastle is registered and removed so we don't
-     * interfere with the tests ot our methods.
-     */
-    private String encodePEMEncodable(KeyPair keyPair2) throws IOException {
-        Security.addProvider(new BouncyCastleProvider());
-        String encoded = PEMEncodable.create(keyPair2).encode();
-        Security.removeProvider("BC");
-        
-        return encoded;
+    private static String unifyEOL(String s) {
+        // unify EOL for comparison purposes
+        return s.replaceAll("(\r|\n)", "\n");
     }
-    
-    /**
-     * Helper method to execute decode en PEM encodable esuring that BouncyCastle is registered and removed so we don't
-     * interfere with the tests ot our methods.
-     */
-    private KeyPair decodePEMEncodable(String pcksPEM) throws IOException, UnrecoverableKeyException {
-        Security.addProvider(new BouncyCastleProvider());
-        KeyPair kp = PEMEncodable.decode(pcksPEM).toKeyPair();
-        Security.removeProvider("BC");
-        
-        return kp;
-    }
-    
 
-    
 }

@@ -41,7 +41,7 @@ public class PEMHelper {
     private static final String END_RSA_PK = "-----END RSA PRIVATE KEY-----";
     private static final String BEGIN_PK = "-----BEGIN PRIVATE KEY-----";
     private static final String END_PK = "-----END PRIVATE KEY-----";
-    private static final String PEM_LINE_SEP = "\r";
+    private static final String PEM_LINE_SEP = "\n";
     private static final int PEM_LINE_LENGTH = 64;
 
     /**
