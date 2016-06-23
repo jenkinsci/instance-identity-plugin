@@ -6,12 +6,8 @@ import hudson.model.PageDecorator;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -20,15 +16,12 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.apache.commons.io.FileUtils;
+import org.jenkinsci.main.modules.instance_identity.pem.PEMHelper;
+
 import jenkins.model.Jenkins;
 import jenkins.security.CryptoConfidentialKey;
-import org.apache.commons.io.FileUtils;
-import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
-import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
-import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-import org.bouncycastle.openssl.PEMKeyPair;
-import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.openssl.PEMWriter;
 
 /**
  * Captures the RSA key pair that identifies/authenticates this instance.
@@ -71,22 +64,13 @@ public class InstanceIdentity {
     }
 
     private static KeyPair read(File keyFile, File oldKeyFile, KeyPairGenerator gen) throws IOException {
-        // a hack to work around a problem in PEMParser (or JCE, depending on how you look at it.)
-        // I can't just pass in null as a provider --- JCE doesn't default to the default provider,
-        // but it chokes that I passed in null. Urgh.
         byte[] enc;
         KeyPair keyPair = null;
-        Reader in;
 
-        String provider = gen.getProvider().getName();
         if (keyFile != null) { //Get the Reader for keyFile and handle if corrupted
             try {
                 enc = FileUtils.readFileToByteArray(keyFile);
-                in = new StringReader(new String(KEY.decrypt().doFinal(enc), "UTF-8"));
-                PEMParser r = new PEMParser(in);
-                Object o = r.readObject();
-                JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider(provider);
-                keyPair = converter.getKeyPair((PEMKeyPair) o);
+                keyPair = PEMHelper.decodePEM(new String(KEY.decrypt().doFinal(enc), "UTF-8"));
             } catch (FileNotFoundException e) {
                 LOGGER.fine("identity.key.enc doesn't exist. New Identity.key.enc will be generated");
                 return null;
@@ -98,26 +82,16 @@ public class InstanceIdentity {
                 return null;
             }
         } else if (oldKeyFile != null) { //Get the Reader for oldKeyFile
-            in = new FileReader(oldKeyFile);
-            PEMParser r = new PEMParser(in);
-            Object o = r.readObject();
-            JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider(provider);
-            keyPair = converter.getKeyPair((PEMKeyPair) o);
+            keyPair = PEMHelper.decodePEM(FileUtils.readFileToString(oldKeyFile));
         }
         return keyPair;
     }
 
     private static void write(KeyPair keys, File keyFile) throws IOException {
-        StringWriter sw = new StringWriter();
-        JcaPEMWriter w = new JcaPEMWriter(sw);
-        try {
-            w.writeObject(keys);
-        } finally {
-            w.close();
-        }
+        String pem = PEMHelper.encodePEM(keys);
         OutputStream os = new FileOutputStream(keyFile);
         try {
-            os.write(KEY.encrypt().doFinal(sw.toString().getBytes("UTF-8")));
+            os.write(KEY.encrypt().doFinal(pem.getBytes("UTF-8")));
         } catch (GeneralSecurityException x) {
             throw new IOException(x);
         } finally {
