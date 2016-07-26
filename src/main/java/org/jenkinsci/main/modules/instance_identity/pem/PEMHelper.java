@@ -3,6 +3,7 @@ package org.jenkinsci.main.modules.instance_identity.pem;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -104,7 +105,7 @@ public class PEMHelper {
 
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            BufferedWriter bw = new BufferedWriter(new PrintWriter(baos));
+            BufferedWriter bw = new BufferedWriter(new PrintWriter(new OutputStreamWriter(baos, "UTF-8")));
 
             bw.write(BEGIN_PK);
             bw.write(PEM_LINE_SEP);
@@ -184,7 +185,7 @@ public class PEMHelper {
 
     private static void writeEncoded(byte[] bytes, BufferedWriter wr) throws IOException {
         char[] buf = new char[PEM_LINE_LENGTH];
-        bytes = DatatypeConverter.printBase64Binary(bytes).getBytes();
+        bytes = DatatypeConverter.printBase64Binary(bytes).getBytes("UTF-8");
         for (int i = 0; i < bytes.length; i += buf.length) {
             int index;
             for (index = 0; index < buf.length && (i + index) < bytes.length; index++) {

@@ -69,7 +69,7 @@ public class Asn1Object {
         this.tag = tag;
         this.type = tag & 0x1F;
         this.length = length;
-        this.value = value;
+        this.value = value.clone();
     }
 
     public int getType() {
@@ -81,7 +81,7 @@ public class Asn1Object {
     }
 
     public byte[] getValue() {
-        return value;
+        return value.clone();
     }
 
     public boolean isConstructed() {
