@@ -1,5 +1,7 @@
 package org.jenkinsci.main.modules.instance_identity;
 
+import hudson.Extension;
+import hudson.ExtensionList;
 import hudson.FilePath;
 import hudson.Util;
 import hudson.model.PageDecorator;
@@ -33,7 +35,8 @@ public class InstanceIdentity {
     private final KeyPair keys;
 
     public InstanceIdentity() throws IOException {
-        this(new File(Jenkins.getInstance().getRootDir(), "identity.key.enc"), new File(Jenkins.getInstance().getRootDir(), "identity.key"));
+        this(new File(Jenkins.getActiveInstance().getRootDir(), "identity.key.enc"),
+                new File(Jenkins.getActiveInstance().getRootDir(), "identity.key"));
     }
 
     public InstanceIdentity(File keyFile) throws IOException {
@@ -123,7 +126,11 @@ public class InstanceIdentity {
     }
 
     public static InstanceIdentity get() {
-        return Jenkins.getInstance().getExtensionList(PageDecorator.class).get(PageDecoratorImpl.class).identity;
+        PageDecoratorImpl instance = ExtensionList.lookup(PageDecorator.class).get(PageDecoratorImpl.class);
+        if (instance == null) {
+            throw new AssertionError("InstanceIdentity is missing its singleton");
+        }
+        return instance.identity;
     }
 
     private static final Logger LOGGER = Logger.getLogger(InstanceIdentity.class.getName());

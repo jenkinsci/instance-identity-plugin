@@ -2,6 +2,7 @@ package org.jenkinsci.main.modules.instance_identity;
 
 import hudson.Extension;
 import hudson.model.PageDecorator;
+import java.nio.charset.Charset;
 import org.apache.commons.codec.binary.Base64;
 
 import java.io.IOException;
@@ -23,6 +24,6 @@ public class PageDecoratorImpl extends PageDecorator {
 
     public String getEncodedPublicKey() {
         RSAPublicKey key = identity.getPublic();
-        return new String(Base64.encodeBase64(key.getEncoded()));
+        return new String(Base64.encodeBase64(key.getEncoded()), Charset.forName("UTF-8"));
     }
 }
