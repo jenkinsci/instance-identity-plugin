@@ -154,6 +154,7 @@ public class InstanceIdentity {
                         .sha256()
                         .generate();
             } catch (IOException e) {
+                LOGGER.log(Level.SEVERE, "Failed to access generate a self-signed identity certificate", e);
                 return null;
             }
         }
