@@ -1,10 +1,10 @@
 package org.jenkinsci.main.modules.instance_identity;
 
-import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.FilePath;
 import hudson.Util;
 import hudson.model.PageDecorator;
+import io.github.stephenc.crypto.sscg.SelfSignedCertificate;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -14,16 +14,17 @@ import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.apache.commons.io.FileUtils;
-import org.jenkinsci.main.modules.instance_identity.pem.PEMHelper;
-
 import jenkins.model.Jenkins;
 import jenkins.security.CryptoConfidentialKey;
+import org.apache.commons.io.FileUtils;
+import org.jenkinsci.main.modules.instance_identity.pem.PEMHelper;
 
 /**
  * Captures the RSA key pair that identifies/authenticates this instance.
@@ -33,6 +34,7 @@ import jenkins.security.CryptoConfidentialKey;
  */
 public class InstanceIdentity {
     private final KeyPair keys;
+    private X509Certificate certificate;
 
     public InstanceIdentity() throws IOException {
         this(new File(Jenkins.getActiveInstance().getRootDir(), "identity.key.enc"),
@@ -118,11 +120,11 @@ public class InstanceIdentity {
     }
 
     public RSAPublicKey getPublic() {
-        return (RSAPublicKey)keys.getPublic();
+        return (RSAPublicKey) keys.getPublic();
     }
 
     public RSAPrivateKey getPrivate() {
-        return (RSAPrivateKey)keys.getPrivate();
+        return (RSAPrivateKey) keys.getPrivate();
     }
 
     public static InstanceIdentity get() {
@@ -134,4 +136,28 @@ public class InstanceIdentity {
     }
 
     private static final Logger LOGGER = Logger.getLogger(InstanceIdentity.class.getName());
+
+    synchronized X509Certificate getCertificate() {
+        // generate if not yet valid or will expire in less than 1 day
+        if (certificate == null
+                || System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1) > certificate.getNotAfter().getTime()
+                || System.currentTimeMillis() < certificate.getNotBefore().getTime()) {
+
+            try {
+                certificate = SelfSignedCertificate.forKeyPair(InstanceIdentity.get().keys)
+                        .cn(Jenkins.getActiveInstance().getLegacyInstanceId())
+                        .o("instances")
+                        .ou("jenkins.io")
+                        .c("US")
+                        .validFrom(new Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1)))
+                        .validUntil(new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(366)))
+                        .sha256()
+                        .generate();
+            } catch (IOException e) {
+                LOGGER.log(Level.SEVERE, "Failed to access generate a self-signed identity certificate", e);
+                return null;
+            }
+        }
+        return certificate;
+    }
 }

@@ -1,5 +1,7 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
@@ -10,8 +12,15 @@
   <artifactId>instance-identity</artifactId>
   <version>2.1-SNAPSHOT</version>
   <packaging>jenkins-module</packaging>
+
   <name>Instance Identity</name>
   <description>Maintains an RSA key pair that can serve as a foundation of authentication when communicating with Jenkins</description>
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>http://www.opensource.org/licenses/mit-license.php</url>
+    </license>
+  </licenses>
 
   <scm>
     <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-module.git</connection>
@@ -19,10 +28,37 @@
     <tag>HEAD</tag>
   </scm>
 
-  <licenses>
-    <license>
-      <name>MIT License</name>
-      <url>http://www.opensource.org/licenses/mit-license.php</url>
-    </license>
-  </licenses>
+  <properties>
+    <!-- TODO Replace with 2.16 once Jenkins core 2.16 released -->
+    <jenkins.version>2.15</jenkins.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.github.stephenc.crypto</groupId>
+      <artifactId>self-signed-cert-generator</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <!-- TODO remove once Jenkins core 2.16 released -->
+    <plugins>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>jenkins/model/**</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.jenkins-ci.tools</groupId>
+        <artifactId>maven-hpi-plugin</artifactId>
+        <configuration>
+          <jenkinsCoreVersionOverride>2.16</jenkinsCoreVersionOverride>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>
