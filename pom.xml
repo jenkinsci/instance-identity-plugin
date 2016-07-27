@@ -29,7 +29,7 @@
   </scm>
 
   <properties>
-    <!-- TODO remove once Jenkins core 2.16 released -->
+    <!-- TODO Replace with 2.16 once Jenkins core 2.16 released -->
     <jenkins.version>2.15</jenkins.version>
   </properties>
 
