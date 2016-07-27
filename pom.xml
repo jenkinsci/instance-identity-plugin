@@ -10,7 +10,7 @@
 
   <groupId>org.jenkins-ci.modules</groupId>
   <artifactId>instance-identity</artifactId>
-  <version>2.1-SNAPSHOT</version>
+  <version>2.1</version>
   <packaging>jenkins-module</packaging>
 
   <name>Instance Identity</name>
@@ -25,7 +25,7 @@
   <scm>
     <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-module.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-module.git</developerConnection>
-    <tag>HEAD</tag>
+    <tag>instance-identity-2.1</tag>
   </scm>
 
   <properties>
