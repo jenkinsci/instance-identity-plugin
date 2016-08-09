@@ -29,8 +29,7 @@
   </scm>
 
   <properties>
-    <!-- TODO Replace with 2.16 once Jenkins core 2.16 released -->
-    <jenkins.version>2.15</jenkins.version>
+    <jenkins.version>2.16</jenkins.version>
   </properties>
 
   <dependencies>
@@ -40,25 +39,4 @@
       <version>1.0.0</version>
     </dependency>
   </dependencies>
-
-  <build>
-    <!-- TODO remove once Jenkins core 2.16 released -->
-    <plugins>
-      <plugin>
-        <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <excludes>
-            <exclude>jenkins/model/**</exclude>
-          </excludes>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.jenkins-ci.tools</groupId>
-        <artifactId>maven-hpi-plugin</artifactId>
-        <configuration>
-          <jenkinsCoreVersionOverride>2.16</jenkinsCoreVersionOverride>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 </project>
