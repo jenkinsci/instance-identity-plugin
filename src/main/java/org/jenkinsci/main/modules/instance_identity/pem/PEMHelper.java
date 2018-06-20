@@ -17,11 +17,11 @@ import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPrivateCrtKeySpec;
 import java.security.spec.RSAPublicKeySpec;
+import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
-import javax.xml.bind.DatatypeConverter;
 
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.accmod.Restricted;
@@ -124,10 +124,8 @@ public class PEMHelper {
     }
     
     private static byte[] extractBinaryPEM(String pem, String header, String footer) {
-        String stripedPEM = StringUtils.stripEnd(StringUtils.strip(pem, header), header);
-        // sanity cleanup
-        stripedPEM = stripedPEM.replaceAll("(\r|\n|\t| )", "");
-        return DatatypeConverter.parseBase64Binary(stripedPEM);
+        String stripedPEM = StringUtils.stripEnd(StringUtils.strip(pem.trim(), header), footer);
+        return Base64.getMimeDecoder().decode(stripedPEM);
     }
 
     /**
@@ -185,7 +183,9 @@ public class PEMHelper {
 
     private static void writeEncoded(byte[] bytes, BufferedWriter wr) throws IOException {
         char[] buf = new char[PEM_LINE_LENGTH];
-        bytes = DatatypeConverter.printBase64Binary(bytes).getBytes("UTF-8");
+        bytes = Base64.getEncoder().encode(bytes);
+        // getMimeEncoder() may or may not put the NL in the end, which is inconvenient because
+        // we want to always print NL at the end
         for (int i = 0; i < bytes.length; i += buf.length) {
             int index;
             for (index = 0; index < buf.length && (i + index) < bytes.length; index++) {
