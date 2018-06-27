@@ -18,7 +18,7 @@ This header is always available, even if the response is 401 access denied
 The value represents a base64-encoded ASN.1 DER serialization of X.509 SubjectPublicKeyInfo record.
 
 Plugins that run inside Jenkins can access this key pair programmatically through
-the org.jenkinsci.main.modules.instance_identity.InstanceIdentity class
+the `org.jenkinsci.main.modules.instance_identity.InstanceIdentity` class
 (add a provided scope dependency to this module into your plugin).
 
 ## Possible use
