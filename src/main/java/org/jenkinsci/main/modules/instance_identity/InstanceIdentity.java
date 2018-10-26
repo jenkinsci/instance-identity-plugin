@@ -129,6 +129,10 @@ public class InstanceIdentity {
         return (RSAPrivateKey) keys.getPrivate();
     }
 
+    /**
+     * @since TODO
+     * @return the encoded RSA public key.
+     */
     public String getEncodedPublicKey() {
         RSAPublicKey key = getPublic();
         return new String(Base64.encodeBase64(key.getEncoded()), Charset.forName("UTF-8"));
