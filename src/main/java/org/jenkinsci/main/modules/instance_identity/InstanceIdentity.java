@@ -11,6 +11,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -135,7 +136,7 @@ public class InstanceIdentity {
      */
     public String getEncodedPublicKey() {
         RSAPublicKey key = getPublic();
-        return new String(Base64.encodeBase64(key.getEncoded()), Charset.forName("UTF-8"));
+        return new String(Base64.encodeBase64(key.getEncoded()), StandardCharsets.UTF_8);
     }
 
     public static InstanceIdentity get() {
