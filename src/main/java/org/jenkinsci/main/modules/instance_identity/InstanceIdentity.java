@@ -131,8 +131,8 @@ public class InstanceIdentity {
     }
 
     /**
-     * @since TODO
      * @return the encoded RSA public key.
+     * @since TODO
      */
     public String getEncodedPublicKey() {
         RSAPublicKey key = getPublic();
