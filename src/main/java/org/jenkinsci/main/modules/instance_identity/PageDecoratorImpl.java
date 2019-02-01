@@ -23,7 +23,6 @@ public class PageDecoratorImpl extends PageDecorator {
     }
 
     public String getEncodedPublicKey() {
-        RSAPublicKey key = identity.getPublic();
-        return new String(Base64.encodeBase64(key.getEncoded()), Charset.forName("UTF-8"));
+        return identity.getEncodedPublicKey();
     }
 }

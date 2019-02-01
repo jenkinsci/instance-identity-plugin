@@ -10,6 +10,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -23,6 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jenkins.model.Jenkins;
 import jenkins.security.CryptoConfidentialKey;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.jenkinsci.main.modules.instance_identity.pem.PEMHelper;
 
@@ -125,6 +128,15 @@ public class InstanceIdentity {
 
     public RSAPrivateKey getPrivate() {
         return (RSAPrivateKey) keys.getPrivate();
+    }
+
+    /**
+     * @return the encoded RSA public key.
+     * @since TODO
+     */
+    public String getEncodedPublicKey() {
+        RSAPublicKey key = getPublic();
+        return new String(Base64.encodeBase64(key.getEncoded()), StandardCharsets.UTF_8);
     }
 
     public static InstanceIdentity get() {
