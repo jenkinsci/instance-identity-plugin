@@ -101,7 +101,7 @@ public class ReadWriteKeyTest {
 
     private static String unifyEOL(String s) {
         // unify EOL for comparison purposes
-        return s.replaceAll("(\r|\n)", "\n");
+        return s.replaceAll("\r\n", "\n");
     }
 
 }
