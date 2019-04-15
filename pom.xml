@@ -5,7 +5,8 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>3.36</version>
+    <version>3.42</version>
+    <relativePath />
   </parent>
 
   <groupId>org.jenkins-ci.modules</groupId>
@@ -18,13 +19,14 @@
   <licenses>
     <license>
       <name>MIT License</name>
-      <url>https://opensource.org/licenses/mit-license.php</url>
+      <url>https://opensource.org/licenses/MIT</url>
     </license>
   </licenses>
 
   <scm>
     <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-module.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-module.git</developerConnection>
+    <url>https://github.com/jenkinsci/${project.artifactId}-module</url>
     <tag>HEAD</tag>
   </scm>
 
@@ -32,6 +34,19 @@
     <jenkins.version>2.16</jenkins.version>
     <java.level>8</java.level>
   </properties>
+
+  <repositories>
+    <repository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </pluginRepository>
+  </pluginRepositories>
 
   <dependencies>
     <dependency>
