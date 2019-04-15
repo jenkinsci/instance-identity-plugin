@@ -10,7 +10,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
@@ -71,7 +70,7 @@ public class InstanceIdentity {
         }
     }
 
-    private static KeyPair read(File keyFile, File oldKeyFile, KeyPairGenerator gen) throws IOException {
+    private KeyPair read(File keyFile, File oldKeyFile, KeyPairGenerator gen) throws IOException {
         byte[] enc;
         KeyPair keyPair = null;
 
@@ -95,7 +94,7 @@ public class InstanceIdentity {
         return keyPair;
     }
 
-    private static void write(KeyPair keys, File keyFile) throws IOException {
+    private void write(KeyPair keys, File keyFile) throws IOException {
         String pem = PEMHelper.encodePEM(keys);
         OutputStream os = new FileOutputStream(keyFile);
         try {
@@ -109,7 +108,7 @@ public class InstanceIdentity {
     }
 
     // Would be neater to actually write an encrypted RSA key in PEM format, but could not wrangle BouncyCastle into reading the result, so just doing generic encryption instead:
-    private static final CryptoConfidentialKey KEY = new CryptoConfidentialKey(InstanceIdentity.class, "KEY");
+    private final CryptoConfidentialKey KEY = new CryptoConfidentialKey(InstanceIdentity.class, "KEY");
 
     /**
      * Try to make the key read-only.
