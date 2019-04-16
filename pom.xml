@@ -33,7 +33,7 @@
   <properties>
     <revision>3.0</revision>
     <changelist>-SNAPSHOT</changelist>
-    <jenkins.version>2.174-rc28241.16ece5c66e57</jenkins.version> <!-- TODO -->
+    <jenkins.version>2.174-rc28240.3dc04f96ae74</jenkins.version> <!-- TODO first after 2.173 -->
     <java.level>8</java.level>
   </properties>
 
