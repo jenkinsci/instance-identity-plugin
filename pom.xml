@@ -11,8 +11,8 @@
 
   <groupId>org.jenkins-ci.modules</groupId>
   <artifactId>instance-identity</artifactId>
-  <version>2.3-SNAPSHOT</version>
-  <packaging>jenkins-module</packaging>
+  <version>${revision}${changelist}</version>
+  <packaging>hpi</packaging>
 
   <name>Instance Identity</name>
   <description>Maintains an RSA key pair that can serve as a foundation of authentication when communicating with Jenkins</description>
@@ -27,11 +27,13 @@
     <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-module.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-module.git</developerConnection>
     <url>https://github.com/jenkinsci/${project.artifactId}-module</url>
-    <tag>HEAD</tag>
+    <tag>${scmTag}</tag>
   </scm>
 
   <properties>
-    <jenkins.version>2.16</jenkins.version>
+    <revision>3.0</revision>
+    <changelist>-SNAPSHOT</changelist>
+    <jenkins.version>2.174-rc28241.16ece5c66e57</jenkins.version> <!-- TODO -->
     <java.level>8</java.level>
   </properties>
 
