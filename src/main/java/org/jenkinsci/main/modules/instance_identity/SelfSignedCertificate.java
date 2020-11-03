@@ -1,0 +1,180 @@
+package org.jenkinsci.main.modules.instance_identity;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.security.interfaces.DSAParams;
+import java.security.interfaces.DSAPrivateKey;
+import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.spec.ECParameterSpec;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.X500NameBuilder;
+import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.asn1.x509.X509Extension;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
+import org.bouncycastle.crypto.params.DSAKeyParameters;
+import org.bouncycastle.crypto.params.DSAParameters;
+import org.bouncycastle.crypto.params.ECDomainParameters;
+import org.bouncycastle.crypto.params.ECKeyParameters;
+import org.bouncycastle.crypto.params.RSAKeyParameters;
+import org.bouncycastle.jcajce.provider.asymmetric.dsa.DSAUtil;
+import org.bouncycastle.jcajce.provider.asymmetric.util.ECUtil;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
+import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.bc.BcDSAContentSignerBuilder;
+import org.bouncycastle.operator.bc.BcECContentSignerBuilder;
+import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+
+public final class SelfSignedCertificate {
+    private static final BouncyCastleProvider BOUNCY_CASTLE_PROVIDER = new BouncyCastleProvider();
+    private final KeyPair keyPair;
+    private Date firstDate = new Date();
+    private Date lastDate = new Date(firstDate.getTime() + TimeUnit.DAYS.toMillis(365));
+    private X500NameBuilder subject = new X500NameBuilder(BCStyle.INSTANCE);
+    private String hashAlg = "SHA1";
+
+    private SelfSignedCertificate(KeyPair keyPair) {
+        this.keyPair = keyPair;
+    }
+
+    public static SelfSignedCertificate forKeyPair(KeyPair keyPair) {
+        return new SelfSignedCertificate(keyPair);
+    }
+
+    public SelfSignedCertificate validFrom(Date date) {
+        this.firstDate = date == null ? new Date() : (Date) (date.clone());
+        return this;
+    }
+
+    public SelfSignedCertificate validUntil(Date date) {
+        this.lastDate =
+                date == null ? new Date(firstDate.getTime() + TimeUnit.DAYS.toMillis(365)) : (Date) (date.clone());
+        return this;
+    }
+
+    public SelfSignedCertificate cn(String name) {
+        subject.addRDN(BCStyle.CN, name);
+        return this;
+    }
+
+    public SelfSignedCertificate c(String name) {
+        subject.addRDN(BCStyle.C, name);
+        return this;
+    }
+
+    public SelfSignedCertificate o(String name) {
+        subject.addRDN(BCStyle.O, name);
+        return this;
+    }
+
+    public SelfSignedCertificate ou(String name) {
+        subject.addRDN(BCStyle.OU, name);
+        return this;
+    }
+
+    public SelfSignedCertificate oid(String oid, String name) {
+        subject.addRDN(new ASN1ObjectIdentifier(oid), name);
+        return this;
+    }
+
+    public SelfSignedCertificate sha1() {
+        hashAlg = "SHA1";
+        return this;
+    }
+
+    public SelfSignedCertificate sha224() {
+        hashAlg = "SHA224";
+        return this;
+    }
+
+    public SelfSignedCertificate sha256() {
+        hashAlg = "SHA256";
+        return this;
+    }
+
+    public SelfSignedCertificate sha384() {
+        hashAlg = "SHA384";
+        return this;
+    }
+
+    public SelfSignedCertificate sha512() {
+        hashAlg = "SHA512";
+        return this;
+    }
+
+    public X509Certificate generate() throws IOException {
+        try {
+            SubjectPublicKeyInfo subjectPublicKeyInfo =
+                    SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded());
+
+            X500Name subject = this.subject.build();
+
+            X509v3CertificateBuilder certGen = new X509v3CertificateBuilder(
+                    subject,
+                    BigInteger.ONE,
+                    firstDate,
+                    lastDate,
+                    subject,
+                    subjectPublicKeyInfo
+            );
+
+            JcaX509ExtensionUtils instance = new JcaX509ExtensionUtils();
+
+            certGen.addExtension(X509Extension.subjectKeyIdentifier,
+                    false,
+                    instance.createSubjectKeyIdentifier(subjectPublicKeyInfo)
+            );
+
+            ContentSigner signer;
+            if (keyPair.getPrivate() instanceof RSAPrivateKey) {
+                RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
+                AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find(hashAlg + "withRSA");
+                AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
+                signer = new BcRSAContentSignerBuilder(sigAlgId, digAlgId).build(
+                        new RSAKeyParameters(true,privateKey.getModulus(), privateKey.getPrivateExponent()));
+            } else if (keyPair.getPrivate() instanceof DSAPrivateKey) {
+                DSAPrivateKey privateKey = (DSAPrivateKey) keyPair.getPrivate();
+                AlgorithmIdentifier sigAlgId =
+                        new DefaultSignatureAlgorithmIdentifierFinder().find(hashAlg + "withDSA");
+                AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
+                signer = new BcDSAContentSignerBuilder(sigAlgId, digAlgId).build(DSAUtil.generatePrivateKeyParameter(privateKey));
+            } else if (keyPair.getPrivate() instanceof ECPrivateKey) {
+                ECPrivateKey privateKey = (ECPrivateKey)keyPair.getPrivate();
+                AlgorithmIdentifier sigAlgId =
+                        new DefaultSignatureAlgorithmIdentifierFinder().find(hashAlg + "withECDSA");
+                AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
+                signer = new BcECContentSignerBuilder(sigAlgId, digAlgId).build(ECUtil.generatePrivateKeyParameter(privateKey));
+            } else {
+                throw new IOException("Unsupported key type");
+            }
+
+            return (X509Certificate) CertificateFactory.getInstance("X.509")
+                    .generateCertificate(new ByteArrayInputStream(certGen.build(signer).getEncoded()));
+        } catch (OperatorCreationException e) {
+            throw new IOException("Failed to generate a certificate", e);
+        } catch (CertificateException e) {
+            throw new IOException("Failed to generate a certificate", e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IOException("Failed to generate a certificate", e);
+        } catch (InvalidKeyException e) {
+            throw new IOException("Failed to generate a certificate", e);
+        }
+    }
+}

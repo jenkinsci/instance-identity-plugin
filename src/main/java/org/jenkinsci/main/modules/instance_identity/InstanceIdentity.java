@@ -4,7 +4,6 @@ import hudson.ExtensionList;
 import hudson.FilePath;
 import hudson.Util;
 import hudson.model.PageDecorator;
-import io.github.stephenc.crypto.sscg.SelfSignedCertificate;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
