@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>3.42</version>
+    <version>4.12</version>
     <relativePath />
   </parent>
 
@@ -24,17 +24,18 @@
   </licenses>
 
   <scm>
-    <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-module.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-module.git</developerConnection>
-    <url>https://github.com/jenkinsci/${project.artifactId}-module</url>
+    <connection>scm:git:git://github.com/${gitHubRepo}.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/${gitHubRepo}.git</developerConnection>
+    <url>https://github.com/${gitHubRepo}</url>
     <tag>${scmTag}</tag>
   </scm>
 
   <properties>
     <revision>3.0</revision>
     <changelist>-SNAPSHOT</changelist>
-    <jenkins.version>2.174-rc28240.3dc04f96ae74</jenkins.version> <!-- TODO first after 2.173 -->
+    <jenkins.version>2.265</jenkins.version> <!-- TODO something… -->
     <java.level>8</java.level>
+    <gitHubRepo>jenkinsci/${project.artifactId}-module</gitHubRepo> <!-- TODO -module → -plugin -->
   </properties>
 
   <repositories>
