@@ -15,7 +15,7 @@
   <packaging>hpi</packaging>
 
   <name>Instance Identity</name>
-  <description>Maintains an RSA key pair that can serve as a foundation of authentication when communicating with Jenkins</description>
+  <url>https://github.com/jenkinsci/${project.artifactId}-module</url> <!-- TODO -module → -plugin -->
   <licenses>
     <license>
       <name>MIT License</name>
