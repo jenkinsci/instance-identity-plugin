@@ -5,17 +5,17 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>3.42</version>
+    <version>4.16</version>
     <relativePath />
   </parent>
 
   <groupId>org.jenkins-ci.modules</groupId>
   <artifactId>instance-identity</artifactId>
-  <version>2.3-SNAPSHOT</version>
-  <packaging>jenkins-module</packaging>
+  <version>${revision}${changelist}</version>
+  <packaging>hpi</packaging>
 
   <name>Instance Identity</name>
-  <description>Maintains an RSA key pair that can serve as a foundation of authentication when communicating with Jenkins</description>
+  <url>https://github.com/jenkinsci/${project.artifactId}-module</url> <!-- TODO -module → -plugin -->
   <licenses>
     <license>
       <name>MIT License</name>
@@ -24,15 +24,18 @@
   </licenses>
 
   <scm>
-    <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-module.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-module.git</developerConnection>
-    <url>https://github.com/jenkinsci/${project.artifactId}-module</url>
-    <tag>HEAD</tag>
+    <connection>scm:git:git://github.com/${gitHubRepo}.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/${gitHubRepo}.git</developerConnection>
+    <url>https://github.com/${gitHubRepo}</url>
+    <tag>${scmTag}</tag>
   </scm>
 
   <properties>
-    <jenkins.version>2.16</jenkins.version>
+    <revision>3.0</revision>
+    <changelist>-SNAPSHOT</changelist>
+    <jenkins.version>2.280</jenkins.version>
     <java.level>8</java.level>
+    <gitHubRepo>jenkinsci/${project.artifactId}-module</gitHubRepo> <!-- TODO -module → -plugin -->
   </properties>
 
   <repositories>
@@ -50,9 +53,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>io.github.stephenc.crypto</groupId>
-      <artifactId>self-signed-cert-generator</artifactId>
-      <version>1.0.0</version>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>bouncycastle-api</artifactId>
+      <version>2.18</version>
     </dependency>
   </dependencies>
 </project>

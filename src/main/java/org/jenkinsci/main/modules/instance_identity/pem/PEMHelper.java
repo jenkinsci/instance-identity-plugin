@@ -27,6 +27,8 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
+// TODO consider switching to BouncyCastle APIs
+
 /**
  * Helper class to decode an encode PEM formated strings without any external dependencies
  * The supported formats are:
