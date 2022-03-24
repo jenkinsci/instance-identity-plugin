@@ -21,7 +21,7 @@ import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.accmod.Restricted;
@@ -54,8 +54,8 @@ public class PEMHelper {
      * @return decoded PEM as {@link KeyPair}
      * @throws IOException if a problem exists decoding the PEM 
      */
-    @Nonnull
-    public static KeyPair decodePEM(@Nonnull String pem) throws IOException {
+    @NonNull
+    public static KeyPair decodePEM(@NonNull String pem) throws IOException {
         KeySpec privKeySpec;
 
         // obtain KeySpec according to the detected format
@@ -102,8 +102,8 @@ public class PEMHelper {
      * @return {@link KeyPair} as an encoded PEM String 
      * @throws IOException if a problem exists decoding the PEM 
      */
-    @Nonnull
-    public static String encodePEM(@Nonnull KeyPair keys) throws IOException {
+    @NonNull
+    public static String encodePEM(@NonNull KeyPair keys) throws IOException {
 
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
