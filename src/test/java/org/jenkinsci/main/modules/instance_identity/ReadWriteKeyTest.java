@@ -30,10 +30,14 @@ import static org.junit.Assert.assertEquals;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
+import java.security.Security;
 
 import org.apache.commons.io.FileUtils;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.jenkinsci.main.modules.instance_identity.pem.PEMHelper;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -58,12 +62,13 @@ public class ReadWriteKeyTest {
                 ReadWriteKeyTest.class.getClassLoader().getResource("private-key-private-encoded.bin").toURI()));
         KEY_PUBLIC_ENCODED = FileUtils.readFileToByteArray(new File(
                 ReadWriteKeyTest.class.getClassLoader().getResource("private-key-public-encoded.bin").toURI()));
+        Security.addProvider(new BouncyCastleProvider());
     }
 
     @Test
     public void testReadIdentityPKCS1vsPKCS8() throws Exception {
-        String pcks1PEM = FileUtils.readFileToString(PEM_PCKS1_FILE);
-        String pcks8PEM = FileUtils.readFileToString(PEM_PCKS8_FILE);
+        String pcks1PEM = FileUtils.readFileToString(PEM_PCKS1_FILE, StandardCharsets.UTF_8);
+        String pcks8PEM = FileUtils.readFileToString(PEM_PCKS8_FILE, StandardCharsets.UTF_8);
 
         KeyPair keyPair1 = PEMHelper.decodePEM(pcks1PEM);
         KeyPair keyPair8 = PEMHelper.decodePEM(pcks8PEM);
@@ -72,26 +77,39 @@ public class ReadWriteKeyTest {
         assertArrayEquals(keyPair1.getPublic().getEncoded(), keyPair8.getPublic().getEncoded());
     }
 
+    @Test(expected = IOException.class)
+    public void testDecodeInvalidIdentity() throws Exception {
+        PEMHelper.decodePEM("not valid");
+        Assert.fail("Invalid PEM should throw an IOException");
+    }
+
+    @Test(expected = IOException.class)
+    public void testEncodeInvalidIdentity() throws Exception {
+        PEMHelper.encodePEM(new KeyPair(null, null));
+        Assert.fail("Invalid PEM should throw an IOException");
+    }
+
     @Test
     public void testWriteIdentityPKCS1vsPKCS8() throws Exception {
-        String pcksPEM = FileUtils.readFileToString(PEM_PCKS8_FILE);
+        String pcks1PEM = FileUtils.readFileToString(PEM_PCKS1_FILE, StandardCharsets.UTF_8);
+        String pcks8PEM = FileUtils.readFileToString(PEM_PCKS8_FILE, StandardCharsets.UTF_8);
 
-        KeyPair keyPair = PEMHelper.decodePEM(pcksPEM);
+        KeyPair keyPair = PEMHelper.decodePEM(pcks8PEM);
         String encodedPEM = PEMHelper.encodePEM(keyPair);
 
-        assertEquals(unifyEOL(pcksPEM), unifyEOL(encodedPEM));
+        assertEquals(unifyEOL(pcks1PEM), unifyEOL(encodedPEM));
     }
 
     @Test
     public void testCompareReadPKCS1AndPCKS8() throws Exception {
-        String pcksPEM = FileUtils.readFileToString(PEM_PCKS1_FILE);
+        String pcks1PEM = FileUtils.readFileToString(PEM_PCKS1_FILE, StandardCharsets.UTF_8);
 
-        KeyPair keyPair = PEMHelper.decodePEM(pcksPEM);
+        KeyPair keyPair = PEMHelper.decodePEM(pcks1PEM);
         String reEncodedPEM = PEMHelper.encodePEM(keyPair);
 
         assertArrayEquals(keyPair.getPrivate().getEncoded(), KEY_PRIVATE_ENCODED);
         assertArrayEquals(keyPair.getPublic().getEncoded(), KEY_PUBLIC_ENCODED);
-        assertEquals(unifyEOL(reEncodedPEM), unifyEOL(FileUtils.readFileToString(PEM_PCKS8_FILE)));
+        assertEquals(unifyEOL(reEncodedPEM), unifyEOL(FileUtils.readFileToString(PEM_PCKS1_FILE, StandardCharsets.UTF_8)));
 
         // reread the newly encoded keyPair and retest
         KeyPair keyPair2 = PEMHelper.decodePEM(reEncodedPEM);
