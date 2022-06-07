@@ -26,6 +26,7 @@ package org.jenkinsci.main.modules.instance_identity;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,7 +38,6 @@ import java.security.Security;
 import org.apache.commons.io.FileUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.jenkinsci.main.modules.instance_identity.pem.PEMHelper;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -77,16 +77,20 @@ public class ReadWriteKeyTest {
         assertArrayEquals(keyPair1.getPublic().getEncoded(), keyPair8.getPublic().getEncoded());
     }
 
-    @Test(expected = IOException.class)
-    public void testDecodeInvalidIdentity() throws Exception {
-        PEMHelper.decodePEM("not valid");
-        Assert.fail("Invalid PEM should throw an IOException");
+    /**
+     * Invalid PEM should throw an IOException
+     */
+    @Test
+    public void testDecodeInvalidIdentity() {
+        assertThrows(IOException.class, () -> PEMHelper.decodePEM("not valid"));
     }
 
-    @Test(expected = IOException.class)
-    public void testEncodeInvalidIdentity() throws Exception {
-        PEMHelper.encodePEM(new KeyPair(null, null));
-        Assert.fail("Invalid PEM should throw an IOException");
+    /**
+     * Invalid PEM should throw an IOException
+     */
+    @Test
+    public void testEncodeInvalidIdentity() {
+        assertThrows(IOException.class, () -> PEMHelper.encodePEM(new KeyPair(null, null)));
     }
 
     @Test
