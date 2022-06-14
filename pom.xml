@@ -11,7 +11,7 @@
 
   <groupId>org.jenkins-ci.modules</groupId>
   <artifactId>instance-identity</artifactId>
-  <version>${revision}${changelist}</version>
+  <version>3.2</version>
   <packaging>hpi</packaging>
 
   <name>Instance Identity</name>
@@ -27,7 +27,7 @@
     <connection>scm:git:git://github.com/${gitHubRepo}.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/${gitHubRepo}.git</developerConnection>
     <url>https://github.com/${gitHubRepo}</url>
-    <tag>${scmTag}</tag>
+    <tag>instance-identity-3.2</tag>
   </scm>
 
   <properties>
