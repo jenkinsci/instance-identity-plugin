@@ -1,0 +1,3 @@
+_extends: .github
+#FIXME: change role-strategy to your component
+tag-template: instance-identity-$NEXT_MINOR_VERSION
