@@ -1,0 +1,2 @@
+_extends: .github
+tag-template: instance-identity-$NEXT_MINOR_VERSION
