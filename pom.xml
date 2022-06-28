@@ -33,7 +33,7 @@
   <properties>
     <revision>3.3</revision>
     <changelist>-SNAPSHOT</changelist>
-    <jenkins.version>2.348</jenkins.version>
+    <jenkins.version>2.357</jenkins.version>
     <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
   </properties>
 

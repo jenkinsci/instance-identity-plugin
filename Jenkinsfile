@@ -1,2 +1,5 @@
-// Builds a module using https://github.com/jenkins-infra/pipeline-library
-buildPlugin()
+// TODO can simplify once buildPlugin defaults to use JDK 11
+buildPlugin(configurations: [
+    [jdk: 11, platform: 'linux'],
+    [jdk: 11, platform: 'windows'],
+])
