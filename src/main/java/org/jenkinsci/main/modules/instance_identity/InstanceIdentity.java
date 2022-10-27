@@ -29,7 +29,7 @@ import org.jenkinsci.main.modules.instance_identity.pem.PEMHelper;
 
 /**
  * Captures the RSA key pair that identifies/authenticates this instance.
- * Useful wherever we need to authenticate Jenkins against something external to it ({@code sshd-module} for example).
+ * Useful wherever we need to authenticate Jenkins against something external to it ({@code sshd-plugin} for example).
  *
  * @author Kohsuke Kawaguchi
  */

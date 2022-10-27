@@ -1,7 +1,7 @@
-Instance Identity module for Jenkins
+Instance Identity plugin for Jenkins
 ====================================
 
-This module maintains an RSA key pair that can serve
+This plugin maintains an RSA key pair that can serve
 as a foundation of authentication when communicating with Jenkins.
 
 ## Description
@@ -19,7 +19,7 @@ The value represents a base64-encoded ASN.1 DER serialization of X.509 SubjectPu
 
 Plugins that run inside Jenkins can access this key pair programmatically through
 the `org.jenkinsci.main.modules.instance_identity.InstanceIdentity` class
-(add a provided scope dependency to this module into your plugin).
+(add a plugin-to-plugin dependency on this plugin into your plugin).
 
 ## Possible use
 
