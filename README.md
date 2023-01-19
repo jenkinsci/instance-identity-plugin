@@ -34,4 +34,6 @@ the `org.jenkinsci.main.modules.instance_identity.InstanceIdentity` class
 
 ## Changelog
 
-See [Changelog](./CHANGELOG.md)
+Current: [GitHub Releases](https://github.com/jenkinsci/instance-identity-plugin/releases)
+
+[Archives](https://github.com/jenkinsci/instance-identity-plugin/blob/34be923381d81ce7cec72fc6d6a70b07d84d46f0/CHANGELOG.md)
