@@ -2,11 +2,7 @@ package org.jenkinsci.main.modules.instance_identity;
 
 import hudson.Extension;
 import hudson.model.PageDecorator;
-import java.nio.charset.Charset;
-import org.apache.commons.codec.binary.Base64;
-
 import java.io.IOException;
-import java.security.interfaces.RSAPublicKey;
 
 /**
  * Advertises the public key.

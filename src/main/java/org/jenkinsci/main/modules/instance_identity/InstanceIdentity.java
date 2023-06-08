@@ -10,6 +10,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.NoSuchFileException;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -17,14 +20,13 @@ import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Base64;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jenkins.model.Jenkins;
 import jenkins.security.CryptoConfidentialKey;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.FileUtils;
 import org.jenkinsci.main.modules.instance_identity.pem.PEMHelper;
 
 /**
@@ -75,20 +77,24 @@ public class InstanceIdentity {
 
         if (keyFile != null) { //Get the Reader for keyFile and handle if corrupted
             try {
-                enc = FileUtils.readFileToByteArray(keyFile);
-                keyPair = PEMHelper.decodePEM(new String(KEY.decrypt().doFinal(enc), "UTF-8"));
-            } catch (FileNotFoundException e) {
+                enc = Files.readAllBytes(keyFile.toPath());
+                keyPair = PEMHelper.decodePEM(new String(KEY.decrypt().doFinal(enc), StandardCharsets.UTF_8));
+            } catch (FileNotFoundException | NoSuchFileException e) {
                 LOGGER.fine("identity.key.enc doesn't exist. New Identity.key.enc will be generated");
                 return null;
             } catch (GeneralSecurityException x) {
                 LOGGER.log(Level.SEVERE, "identity.key.enc is corrupted. Identity.key.enc will be deleted and a new one will be generated", x);
                 return null;
-            } catch (IOException e) {
+            } catch (IOException | InvalidPathException e) {
                 LOGGER.log(Level.SEVERE, "failed to access identity.key.enc. Identity.key.enc will be deleted and a new one will be generated", e);
                 return null;
             }
         } else if (oldKeyFile != null) { //Get the Reader for oldKeyFile
-            keyPair = PEMHelper.decodePEM(FileUtils.readFileToString(oldKeyFile));
+            try {
+                keyPair = PEMHelper.decodePEM(Files.readString(oldKeyFile.toPath(), StandardCharsets.UTF_8));
+            } catch (InvalidPathException e) {
+                throw new IOException(e);
+            }
         }
         return keyPair;
     }
@@ -97,7 +103,7 @@ public class InstanceIdentity {
         String pem = PEMHelper.encodePEM(keys);
         OutputStream os = new FileOutputStream(keyFile);
         try {
-            os.write(KEY.encrypt().doFinal(pem.getBytes("UTF-8")));
+            os.write(KEY.encrypt().doFinal(pem.getBytes(StandardCharsets.UTF_8)));
         } catch (GeneralSecurityException x) {
             throw new IOException(x);
         } finally {
@@ -134,7 +140,7 @@ public class InstanceIdentity {
      */
     public String getEncodedPublicKey() {
         RSAPublicKey key = getPublic();
-        return new String(Base64.encodeBase64(key.getEncoded()), StandardCharsets.UTF_8);
+        return Base64.getEncoder().encodeToString(key.getEncoded());
     }
 
     public static InstanceIdentity get() {
