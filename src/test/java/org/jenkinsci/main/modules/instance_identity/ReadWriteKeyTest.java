@@ -28,14 +28,14 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.Security;
-
-import org.apache.commons.io.FileUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.jenkinsci.main.modules.instance_identity.pem.PEMHelper;
 import org.junit.BeforeClass;
@@ -45,8 +45,8 @@ import org.junit.rules.TemporaryFolder;
 
 public class ReadWriteKeyTest {
 
-    private static File PEM_PCKS1_FILE;
-    private static File PEM_PCKS8_FILE;
+    private static Path PEM_PCKS1_FILE;
+    private static Path PEM_PCKS8_FILE;
     private static byte[] KEY_PRIVATE_ENCODED;
     private static byte[] KEY_PUBLIC_ENCODED;
     @Rule
@@ -54,21 +54,29 @@ public class ReadWriteKeyTest {
 
     @BeforeClass
     public static void setUpBC() throws URISyntaxException, IOException {
-        PEM_PCKS1_FILE = new File(
-                ReadWriteKeyTest.class.getClassLoader().getResource("private-key-pcks1.pem").toURI());
-        PEM_PCKS8_FILE = new File(
-                ReadWriteKeyTest.class.getClassLoader().getResource("private-key-pcks8.pem").toURI());
-        KEY_PRIVATE_ENCODED = FileUtils.readFileToByteArray(new File(
-                ReadWriteKeyTest.class.getClassLoader().getResource("private-key-private-encoded.bin").toURI()));
-        KEY_PUBLIC_ENCODED = FileUtils.readFileToByteArray(new File(
-                ReadWriteKeyTest.class.getClassLoader().getResource("private-key-public-encoded.bin").toURI()));
+        PEM_PCKS1_FILE = Paths.get(ReadWriteKeyTest.class
+                .getClassLoader()
+                .getResource("private-key-pcks1.pem")
+                .toURI());
+        PEM_PCKS8_FILE = Paths.get(ReadWriteKeyTest.class
+                .getClassLoader()
+                .getResource("private-key-pcks8.pem")
+                .toURI());
+        KEY_PRIVATE_ENCODED = Files.readAllBytes(Paths.get(ReadWriteKeyTest.class
+                .getClassLoader()
+                .getResource("private-key-private-encoded.bin")
+                .toURI()));
+        KEY_PUBLIC_ENCODED = Files.readAllBytes(Paths.get(ReadWriteKeyTest.class
+                .getClassLoader()
+                .getResource("private-key-public-encoded.bin")
+                .toURI()));
         Security.addProvider(new BouncyCastleProvider());
     }
 
     @Test
     public void testReadIdentityPKCS1vsPKCS8() throws Exception {
-        String pcks1PEM = FileUtils.readFileToString(PEM_PCKS1_FILE, StandardCharsets.UTF_8);
-        String pcks8PEM = FileUtils.readFileToString(PEM_PCKS8_FILE, StandardCharsets.UTF_8);
+        String pcks1PEM = Files.readString(PEM_PCKS1_FILE, StandardCharsets.UTF_8);
+        String pcks8PEM = Files.readString(PEM_PCKS8_FILE, StandardCharsets.UTF_8);
 
         KeyPair keyPair1 = PEMHelper.decodePEM(pcks1PEM);
         KeyPair keyPair8 = PEMHelper.decodePEM(pcks8PEM);
@@ -95,8 +103,8 @@ public class ReadWriteKeyTest {
 
     @Test
     public void testWriteIdentityPKCS1vsPKCS8() throws Exception {
-        String pcks1PEM = FileUtils.readFileToString(PEM_PCKS1_FILE, StandardCharsets.UTF_8);
-        String pcks8PEM = FileUtils.readFileToString(PEM_PCKS8_FILE, StandardCharsets.UTF_8);
+        String pcks1PEM = Files.readString(PEM_PCKS1_FILE, StandardCharsets.UTF_8);
+        String pcks8PEM = Files.readString(PEM_PCKS8_FILE, StandardCharsets.UTF_8);
 
         KeyPair keyPair = PEMHelper.decodePEM(pcks8PEM);
         String encodedPEM = PEMHelper.encodePEM(keyPair);
@@ -106,14 +114,14 @@ public class ReadWriteKeyTest {
 
     @Test
     public void testCompareReadPKCS1AndPCKS8() throws Exception {
-        String pcks1PEM = FileUtils.readFileToString(PEM_PCKS1_FILE, StandardCharsets.UTF_8);
+        String pcks1PEM = Files.readString(PEM_PCKS1_FILE, StandardCharsets.UTF_8);
 
         KeyPair keyPair = PEMHelper.decodePEM(pcks1PEM);
         String reEncodedPEM = PEMHelper.encodePEM(keyPair);
 
         assertArrayEquals(keyPair.getPrivate().getEncoded(), KEY_PRIVATE_ENCODED);
         assertArrayEquals(keyPair.getPublic().getEncoded(), KEY_PUBLIC_ENCODED);
-        assertEquals(unifyEOL(reEncodedPEM), unifyEOL(FileUtils.readFileToString(PEM_PCKS1_FILE, StandardCharsets.UTF_8)));
+        assertEquals(unifyEOL(reEncodedPEM), unifyEOL(Files.readString(PEM_PCKS1_FILE, StandardCharsets.UTF_8)));
 
         // reread the newly encoded keyPair and retest
         KeyPair keyPair2 = PEMHelper.decodePEM(reEncodedPEM);
