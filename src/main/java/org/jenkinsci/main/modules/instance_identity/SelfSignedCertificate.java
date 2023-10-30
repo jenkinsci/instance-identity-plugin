@@ -3,7 +3,6 @@ package org.jenkinsci.main.modules.instance_identity;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -18,21 +17,13 @@ import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
-import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
-import org.bouncycastle.crypto.params.RSAKeyParameters;
-import org.bouncycastle.jcajce.provider.asymmetric.dsa.DSAUtil;
-import org.bouncycastle.jcajce.provider.asymmetric.util.ECUtil;
 import org.bouncycastle.operator.ContentSigner;
-import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
-import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.operator.bc.BcDSAContentSignerBuilder;
-import org.bouncycastle.operator.bc.BcECContentSignerBuilder;
-import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
 final class SelfSignedCertificate {
 
@@ -136,23 +127,11 @@ final class SelfSignedCertificate {
 
             ContentSigner signer;
             if (keyPair.getPrivate() instanceof RSAPrivateKey) {
-                RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
-                AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find(hashAlg + "withRSA");
-                AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
-                signer = new BcRSAContentSignerBuilder(sigAlgId, digAlgId).build(
-                        new RSAKeyParameters(true,privateKey.getModulus(), privateKey.getPrivateExponent()));
+                signer = new JcaContentSignerBuilder(hashAlg + "withRSA").build(keyPair.getPrivate());
             } else if (keyPair.getPrivate() instanceof DSAPrivateKey) {
-                DSAPrivateKey privateKey = (DSAPrivateKey) keyPair.getPrivate();
-                AlgorithmIdentifier sigAlgId =
-                        new DefaultSignatureAlgorithmIdentifierFinder().find(hashAlg + "withDSA");
-                AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
-                signer = new BcDSAContentSignerBuilder(sigAlgId, digAlgId).build(DSAUtil.generatePrivateKeyParameter(privateKey));
+                signer = new JcaContentSignerBuilder(hashAlg + "withDSA").build(keyPair.getPrivate());
             } else if (keyPair.getPrivate() instanceof ECPrivateKey) {
-                ECPrivateKey privateKey = (ECPrivateKey)keyPair.getPrivate();
-                AlgorithmIdentifier sigAlgId =
-                        new DefaultSignatureAlgorithmIdentifierFinder().find(hashAlg + "withECDSA");
-                AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
-                signer = new BcECContentSignerBuilder(sigAlgId, digAlgId).build(ECUtil.generatePrivateKeyParameter(privateKey));
+                signer = new JcaContentSignerBuilder(hashAlg + "withECDSA").build(keyPair.getPrivate());
             } else {
                 throw new IOException("Unsupported key type");
             }
@@ -164,8 +143,6 @@ final class SelfSignedCertificate {
         } catch (CertificateException e) {
             throw new IOException("Failed to generate a certificate", e);
         } catch (NoSuchAlgorithmException e) {
-            throw new IOException("Failed to generate a certificate", e);
-        } catch (InvalidKeyException e) {
             throw new IOException("Failed to generate a certificate", e);
         }
     }
