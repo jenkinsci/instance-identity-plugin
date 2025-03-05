@@ -33,7 +33,6 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.Security;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -54,19 +53,19 @@ public class ReadWriteKeyTest {
 
     @BeforeClass
     public static void setUpBC() throws URISyntaxException, IOException {
-        PEM_PCKS1_FILE = Paths.get(ReadWriteKeyTest.class
+        PEM_PCKS1_FILE = Path.of(ReadWriteKeyTest.class
                 .getClassLoader()
                 .getResource("private-key-pcks1.pem")
                 .toURI());
-        PEM_PCKS8_FILE = Paths.get(ReadWriteKeyTest.class
+        PEM_PCKS8_FILE = Path.of(ReadWriteKeyTest.class
                 .getClassLoader()
                 .getResource("private-key-pcks8.pem")
                 .toURI());
-        KEY_PRIVATE_ENCODED = Files.readAllBytes(Paths.get(ReadWriteKeyTest.class
+        KEY_PRIVATE_ENCODED = Files.readAllBytes(Path.of(ReadWriteKeyTest.class
                 .getClassLoader()
                 .getResource("private-key-private-encoded.bin")
                 .toURI()));
-        KEY_PUBLIC_ENCODED = Files.readAllBytes(Paths.get(ReadWriteKeyTest.class
+        KEY_PUBLIC_ENCODED = Files.readAllBytes(Path.of(ReadWriteKeyTest.class
                 .getClassLoader()
                 .getResource("private-key-public-encoded.bin")
                 .toURI()));
