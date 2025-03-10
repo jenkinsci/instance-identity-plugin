@@ -24,9 +24,7 @@
 
 package org.jenkinsci.main.modules.instance_identity;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -37,22 +35,18 @@ import java.security.KeyPair;
 import java.security.Security;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.jenkinsci.main.modules.instance_identity.pem.PEMHelper;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-public class ReadWriteKeyTest {
+class ReadWriteKeyTest {
 
     private static Path PEM_PCKS1_FILE;
     private static Path PEM_PCKS8_FILE;
     private static byte[] KEY_PRIVATE_ENCODED;
     private static byte[] KEY_PUBLIC_ENCODED;
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
 
-    @BeforeClass
-    public static void setUpBC() throws URISyntaxException, IOException {
+    @BeforeAll
+    static void setUpBC() throws URISyntaxException, IOException {
         PEM_PCKS1_FILE = Path.of(ReadWriteKeyTest.class
                 .getClassLoader()
                 .getResource("private-key-pcks1.pem")
@@ -73,7 +67,7 @@ public class ReadWriteKeyTest {
     }
 
     @Test
-    public void testReadIdentityPKCS1vsPKCS8() throws Exception {
+    void testReadIdentityPKCS1vsPKCS8() throws Exception {
         String pcks1PEM = Files.readString(PEM_PCKS1_FILE, StandardCharsets.UTF_8);
         String pcks8PEM = Files.readString(PEM_PCKS8_FILE, StandardCharsets.UTF_8);
 
@@ -88,7 +82,7 @@ public class ReadWriteKeyTest {
      * Invalid PEM should throw an IOException
      */
     @Test
-    public void testDecodeInvalidIdentity() {
+    void testDecodeInvalidIdentity() {
         assertThrows(IOException.class, () -> PEMHelper.decodePEM("not valid"));
     }
 
@@ -96,12 +90,12 @@ public class ReadWriteKeyTest {
      * Invalid PEM should throw an IOException
      */
     @Test
-    public void testEncodeInvalidIdentity() {
+    void testEncodeInvalidIdentity() {
         assertThrows(IOException.class, () -> PEMHelper.encodePEM(new KeyPair(null, null)));
     }
 
     @Test
-    public void testWriteIdentityPKCS1vsPKCS8() throws Exception {
+    void testWriteIdentityPKCS1vsPKCS8() throws Exception {
         String pcks1PEM = Files.readString(PEM_PCKS1_FILE, StandardCharsets.UTF_8);
         String pcks8PEM = Files.readString(PEM_PCKS8_FILE, StandardCharsets.UTF_8);
 
@@ -112,7 +106,7 @@ public class ReadWriteKeyTest {
     }
 
     @Test
-    public void testCompareReadPKCS1AndPCKS8() throws Exception {
+    void testCompareReadPKCS1AndPCKS8() throws Exception {
         String pcks1PEM = Files.readString(PEM_PCKS1_FILE, StandardCharsets.UTF_8);
 
         KeyPair keyPair = PEMHelper.decodePEM(pcks1PEM);
