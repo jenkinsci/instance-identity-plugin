@@ -24,8 +24,6 @@
 
 package org.jenkinsci.main.modules.instance_identity;
 
-import hudson.model.PageDecorator;
-
 import java.io.File;
 import java.io.FileInputStream;
 
@@ -78,7 +76,7 @@ class InstanceIdentityTest {
     }
 
     private static void assertIdentity(JenkinsRule r) {
-        assertEquals(TEST_IDENTITY, r.jenkins.getExtensionList(PageDecorator.class).get(PageDecoratorImpl.class).getEncodedPublicKey());
+        assertEquals(TEST_IDENTITY, InstanceIdentity.get().getEncodedPublicKey());
         File d = r.jenkins.getRootDir();
         assertTrue(new File(d, "identity.key.enc").isFile());
         assertFalse(new File(d, "identity.key").isFile());

@@ -14,7 +14,7 @@ public class PageDecoratorImpl extends PageDecorator {
     public final InstanceIdentity identity;
 
     public PageDecoratorImpl() throws IOException {
-        super(PageDecoratorImpl.class);
+        super();
         this.identity = new InstanceIdentity();
     }
 
