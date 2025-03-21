@@ -40,8 +40,8 @@ public class InstanceIdentity {
     private X509Certificate certificate;
 
     public InstanceIdentity() throws IOException {
-        this(new File(Jenkins.getActiveInstance().getRootDir(), "identity.key.enc"),
-                new File(Jenkins.getActiveInstance().getRootDir(), "identity.key"));
+        this(new File(Jenkins.get().getRootDir(), "identity.key.enc"),
+                new File(Jenkins.get().getRootDir(), "identity.key"));
     }
 
     public InstanceIdentity(File keyFile) throws IOException {
@@ -101,13 +101,10 @@ public class InstanceIdentity {
 
     private void write(KeyPair keys, File keyFile) throws IOException {
         String pem = PEMHelper.encodePEM(keys);
-        OutputStream os = new FileOutputStream(keyFile);
-        try {
+        try (OutputStream os = new FileOutputStream(keyFile)) {
             os.write(KEY.encrypt().doFinal(pem.getBytes(StandardCharsets.UTF_8)));
         } catch (GeneralSecurityException x) {
             throw new IOException(x);
-        } finally {
-            os.close();
         }
         makeReadOnly(keyFile);
     }
@@ -121,7 +118,7 @@ public class InstanceIdentity {
     private static void makeReadOnly(File keyFile) {
         try {
             new FilePath(keyFile).chmod(0600);
-        } catch (Throwable e) {
+        } catch (IOException | InterruptedException e) {
             LOGGER.log(Level.WARNING, "Failed to make read only: "+keyFile,e);
         }
     }
@@ -161,7 +158,7 @@ public class InstanceIdentity {
 
             try {
                 certificate = SelfSignedCertificate.forKeyPair(InstanceIdentity.get().keys)
-                        .cn(Jenkins.getActiveInstance().getLegacyInstanceId())
+                        .cn(Jenkins.get().getLegacyInstanceId())
                         .o("instances")
                         .ou("jenkins.io")
                         .c("US")

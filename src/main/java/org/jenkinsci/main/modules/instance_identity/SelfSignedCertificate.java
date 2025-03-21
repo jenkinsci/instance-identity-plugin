@@ -138,11 +138,7 @@ final class SelfSignedCertificate {
 
             return (X509Certificate) CertificateFactory.getInstance("X.509")
                     .generateCertificate(new ByteArrayInputStream(certGen.build(signer).getEncoded()));
-        } catch (OperatorCreationException e) {
-            throw new IOException("Failed to generate a certificate", e);
-        } catch (CertificateException e) {
-            throw new IOException("Failed to generate a certificate", e);
-        } catch (NoSuchAlgorithmException e) {
+        } catch (OperatorCreationException | CertificateException | NoSuchAlgorithmException e) {
             throw new IOException("Failed to generate a certificate", e);
         }
     }
