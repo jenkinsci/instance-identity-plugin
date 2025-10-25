@@ -1,5 +1,5 @@
 // TODO can simplify once buildPlugin defaults to use JDK 11
 buildPlugin(useContainerAgent: true, configurations: [
-    [jdk: 21, platform: 'linux'],
-    [jdk: 17, platform: 'windows']
+    [jdk: 25, platform: 'linux'],
+    [jdk: 21, platform: 'windows']
 ])
